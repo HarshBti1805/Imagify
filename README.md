@@ -92,7 +92,3 @@ npm run dev
 
 ## 📜 License  
 This project is licensed under the **MIT License**.  
-
----
-
-This **README** highlights Imagify's core features, **impact-driven details**, and **scalability aspects**. Let me know if you need further refinements! 🚀
