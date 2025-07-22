@@ -18,7 +18,7 @@ const AddTransformationTypePage = async ({
     transformationTypes[type as keyof typeof transformationTypes];
 
   // Try to get user from database
-  let dbUser;
+  let dbUser: User | undefined;
   try {
     dbUser = await getUserById(userId);
   } catch (error) {

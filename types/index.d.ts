@@ -10,6 +10,18 @@ declare type CreateUserParams = {
   photo: string;
 };
 
+declare type User = {
+  _id: string;
+  clerkId: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  photo: string;
+  planId: number;
+  creditBalance: number;
+};
+
 declare type UpdateUserParams = {
   firstName: string;
   lastName: string;

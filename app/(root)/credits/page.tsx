@@ -15,7 +15,7 @@ const Credits = async () => {
   if (!userId) redirect("/sign-in");
 
   // Try to get user from database
-  let dbUser;
+  let dbUser: User | undefined;
   try {
     dbUser = await getUserById(userId);
   } catch (error) {

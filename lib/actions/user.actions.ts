@@ -7,7 +7,7 @@ import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
 
 // CREATE
-export async function createUser(user: CreateUserParams) {
+export async function createUser(user: CreateUserParams): Promise<User> {
   try {
     await connectToDatabase();
 
@@ -16,11 +16,12 @@ export async function createUser(user: CreateUserParams) {
     return JSON.parse(JSON.stringify(newUser));
   } catch (error) {
     handleError(error);
+    throw error; // Re-throw after handling
   }
 }
 
 // READ
-export async function getUserById(userId: string) {
+export async function getUserById(userId: string): Promise<User> {
   try {
     await connectToDatabase();
     const user = await User.findOne({ clerkId: userId });
@@ -28,11 +29,15 @@ export async function getUserById(userId: string) {
     return JSON.parse(JSON.stringify(user));
   } catch (error) {
     handleError(error);
+    throw error; // Re-throw after handling
   }
 }
 
 // UPDATE
-export async function updateUser(clerkId: string, user: UpdateUserParams) {
+export async function updateUser(
+  clerkId: string,
+  user: UpdateUserParams
+): Promise<User> {
   try {
     await connectToDatabase();
 
@@ -45,11 +50,12 @@ export async function updateUser(clerkId: string, user: UpdateUserParams) {
     return JSON.parse(JSON.stringify(updatedUser));
   } catch (error) {
     handleError(error);
+    throw error; // Re-throw after handling
   }
 }
 
 // DELETE
-export async function deleteUser(clerkId: string) {
+export async function deleteUser(clerkId: string): Promise<User | null> {
   try {
     await connectToDatabase();
 
@@ -67,11 +73,15 @@ export async function deleteUser(clerkId: string) {
     return deletedUser ? JSON.parse(JSON.stringify(deletedUser)) : null;
   } catch (error) {
     handleError(error);
+    throw error; // Re-throw after handling
   }
 }
 
 // USE CREDITS
-export async function updateCredits(userId: string, creditFee: number) {
+export async function updateCredits(
+  userId: string,
+  creditFee: number
+): Promise<User> {
   try {
     await connectToDatabase();
 
@@ -86,5 +96,6 @@ export async function updateCredits(userId: string, creditFee: number) {
     return JSON.parse(JSON.stringify(updatedUserCredits));
   } catch (error) {
     handleError(error);
+    throw error; // Re-throw after handling
   }
 }
