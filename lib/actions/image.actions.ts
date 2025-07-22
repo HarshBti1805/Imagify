@@ -12,7 +12,7 @@ import { v2 as cloudinary } from "cloudinary";
 // Helper function to add timeout to database operations
 const withTimeout = <T>(
   promise: Promise<T>,
-  timeoutMs: number = 15000
+  timeoutMs: number = 30000
 ): Promise<T> => {
   return Promise.race([
     promise,
@@ -35,8 +35,8 @@ const populateUser = (query: any) =>
 // ADD IMAGE
 export async function addImage({ image, userId, path }: AddImageParams) {
   try {
-    await withTimeout(connectToDatabase(), 10000);
-    const author = await withTimeout(User.findById(userId), 8000);
+    await withTimeout(connectToDatabase(), 20000);
+    const author = await withTimeout(User.findById(userId), 15000);
     if (!author) {
       throw new Error("User not found");
     }
@@ -45,7 +45,7 @@ export async function addImage({ image, userId, path }: AddImageParams) {
         ...image,
         author: author._id,
       }),
-      8000
+      15000
     );
     revalidatePath(path);
     return JSON.parse(JSON.stringify(newImage));
@@ -57,14 +57,14 @@ export async function addImage({ image, userId, path }: AddImageParams) {
 // UPDATE IMAGE
 export async function updateImage({ image, userId, path }: UpdateImageParams) {
   try {
-    await withTimeout(connectToDatabase(), 10000);
-    const imageToUpdate = await withTimeout(Image.findById(image._id), 8000);
+    await withTimeout(connectToDatabase(), 20000);
+    const imageToUpdate = await withTimeout(Image.findById(image._id), 15000);
     if (!imageToUpdate || imageToUpdate.author.toHexString() !== userId) {
       throw new Error("Unauthorized or image not found");
     }
     const updatedImage = await withTimeout(
       Image.findByIdAndUpdate(imageToUpdate._id, image, { new: true }),
-      8000
+      15000
     );
     revalidatePath(path);
     return JSON.parse(JSON.stringify(updatedImage));
