@@ -27,10 +27,14 @@ export const connectToDatabase = async () => {
       dbName: "imaginify",
       bufferCommands: false,
       maxPoolSize: 1, // Limit connection pool for serverless
+      minPoolSize: 0, // Start with no connections
       serverSelectionTimeoutMS: 10000, // 10 second timeout
       socketTimeoutMS: 60000, // 60 second timeout
       connectTimeoutMS: 15000, // 15 second timeout
       maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+      heartbeatFrequencyMS: 10000, // Check connection health every 10 seconds
+      retryWrites: true, // Retry write operations
+      retryReads: true, // Retry read operations
     });
 
   try {

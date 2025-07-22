@@ -27,6 +27,13 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
   const amount = Number(transaction.amount) * 100;
 
+  // Get the proper server URL for redirects
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000");
+
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
@@ -46,8 +53,8 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
       buyerId: transaction.buyerId,
     },
     mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/profile`,
-    cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
+    success_url: `${serverUrl}/profile`,
+    cancel_url: `${serverUrl}/`,
   });
 
   redirect(session.url!);

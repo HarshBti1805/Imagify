@@ -117,42 +117,48 @@ export async function getAllImages({
 }) {
   try {
     await withTimeout(connectToDatabase(), 10000);
-    cloudinary.config({
-      cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-      secure: true,
-    });
-    let expression = "folder=imaginify";
-    if (searchQuery) {
-      expression += ` AND ${searchQuery}`;
-    }
-    const { resources } = await withTimeout(
-      cloudinary.search.expression(expression).execute(),
-      10000
-    );
-    const resourceIds = resources.map((resource: any) => resource.public_id);
+
     let query = {};
+    let resourceIds: string[] = [];
+
+    // Only search Cloudinary if there's a search query
     if (searchQuery) {
+      cloudinary.config({
+        cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+        secure: true,
+      });
+
+      const expression = `folder=imaginify AND ${searchQuery}`;
+      const { resources } = await withTimeout(
+        cloudinary.search.expression(expression).execute(),
+        8000
+      );
+
+      resourceIds = resources.map((resource: any) => resource.public_id);
       query = {
         publicId: {
           $in: resourceIds,
         },
       };
     }
+
     const skipAmount = (Number(page) - 1) * limit;
-    const images = await withTimeout(
-      populateUser(Image.find(query))
-        .sort({ updatedAt: -1 })
-        .skip(skipAmount)
-        .limit(limit),
-      10000
-    );
-    const totalImages = await withTimeout(
-      Image.find(query).countDocuments(),
-      8000
-    );
-    const savedImages = await withTimeout(Image.find().countDocuments(), 8000);
+
+    // Execute queries in parallel for better performance
+    const [images, totalImages, savedImages] = await Promise.all([
+      withTimeout(
+        populateUser(Image.find(query))
+          .sort({ updatedAt: -1 })
+          .skip(skipAmount)
+          .limit(limit),
+        8000
+      ),
+      withTimeout(Image.find(query).countDocuments(), 5000),
+      withTimeout(Image.find().countDocuments(), 5000),
+    ]);
+
     return {
       data: JSON.parse(JSON.stringify(images)),
       totalPage: Math.ceil(totalImages / limit),
@@ -176,17 +182,19 @@ export async function getUserImages({
   try {
     await withTimeout(connectToDatabase(), 10000);
     const skipAmount = (Number(page) - 1) * limit;
-    const images = await withTimeout(
-      populateUser(Image.find({ author: userId }))
-        .sort({ updatedAt: -1 })
-        .skip(skipAmount)
-        .limit(limit),
-      10000
-    );
-    const totalImages = await withTimeout(
-      Image.find({ author: userId }).countDocuments(),
-      8000
-    );
+
+    // Execute queries in parallel for better performance
+    const [images, totalImages] = await Promise.all([
+      withTimeout(
+        populateUser(Image.find({ author: userId }))
+          .sort({ updatedAt: -1 })
+          .skip(skipAmount)
+          .limit(limit),
+        8000
+      ),
+      withTimeout(Image.find({ author: userId }).countDocuments(), 5000),
+    ]);
+
     return {
       data: JSON.parse(JSON.stringify(images)),
       totalPages: Math.ceil(totalImages / limit),

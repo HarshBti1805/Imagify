@@ -8,7 +8,18 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   const page = Number(searchParams?.page) || 1;
   const searchQuery = (searchParams?.query as string) || "";
 
-  const images = await getAllImages({ page, searchQuery });
+  let images;
+  try {
+    images = await getAllImages({ page, searchQuery });
+  } catch (error) {
+    console.error("Error loading images:", error);
+    // Provide fallback data if database operation fails
+    images = {
+      data: [],
+      totalPage: 0,
+      savedImages: 0,
+    };
+  }
 
   return (
     <>
