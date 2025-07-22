@@ -2,9 +2,6 @@
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
-    },
-    "lib/actions/**/*.ts": {
-      "maxDuration": 30
     }
   },
   "regions": ["iad1"],
