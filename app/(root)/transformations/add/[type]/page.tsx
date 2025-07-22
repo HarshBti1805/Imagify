@@ -44,6 +44,9 @@ const AddTransformationTypePage = async ({
     redirect("/sign-in");
   }
 
+  // At this point, dbUser is guaranteed to be defined
+  const userData = dbUser;
+
   return (
     <>
       <Header title={transformation.title} subtitle={transformation.subTitle} />
@@ -51,9 +54,9 @@ const AddTransformationTypePage = async ({
       <section className="mt-10">
         <TransformationForm
           action="Add"
-          userId={dbUser._id}
+          userId={userData._id}
           type={transformation.type as TransformationTypeKey}
-          creditBalance={dbUser.creditBalance}
+          creditBalance={userData.creditBalance}
         />
       </section>
     </>

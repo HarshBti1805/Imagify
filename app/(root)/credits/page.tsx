@@ -41,6 +41,9 @@ const Credits = async () => {
     redirect("/sign-in");
   }
 
+  // At this point, dbUser is guaranteed to be defined
+  const userData = dbUser;
+
   return (
     <>
       <Header
@@ -91,7 +94,7 @@ const Credits = async () => {
                     plan={plan.name}
                     amount={plan.price}
                     credits={plan.credits}
-                    buyerId={dbUser._id}
+                    buyerId={userData._id}
                   />
                 </SignedIn>
               )}

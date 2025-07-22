@@ -40,6 +40,9 @@ const Page = async ({ params: { id } }: SearchParamProps) => {
     redirect("/sign-in");
   }
 
+  // At this point, dbUser is guaranteed to be defined
+  const userData = dbUser;
+
   const image = await getImageById(id);
 
   const transformation =
@@ -52,9 +55,9 @@ const Page = async ({ params: { id } }: SearchParamProps) => {
       <section className="mt-10">
         <TransformationForm
           action="Update"
-          userId={dbUser._id}
+          userId={userData._id}
           type={image.transformationType as TransformationTypeKey}
-          creditBalance={dbUser.creditBalance}
+          creditBalance={userData.creditBalance}
           config={image.config}
           data={image}
         />

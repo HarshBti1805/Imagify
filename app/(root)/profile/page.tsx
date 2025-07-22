@@ -41,7 +41,10 @@ const Profile = async ({ searchParams }: SearchParamProps) => {
     redirect("/sign-in");
   }
 
-  const images = await getUserImages({ page, userId: dbUser._id });
+  // At this point, dbUser is guaranteed to be defined
+  const userData = dbUser;
+
+  const images = await getUserImages({ page, userId: userData._id });
 
   return (
     <>
@@ -58,7 +61,7 @@ const Profile = async ({ searchParams }: SearchParamProps) => {
               height={50}
               className="size-9 md:size-12"
             />
-            <h2 className="h2-bold text-dark-600">{dbUser.creditBalance}</h2>
+            <h2 className="h2-bold text-dark-600">{userData.creditBalance}</h2>
           </div>
         </div>
 
