@@ -1,20 +1,47 @@
-import { auth } from "@clerk/nextjs";
+import { auth, currentUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import { Collection } from "@/components/shared/Collection";
 import Header from "@/components/shared/Header";
 import { getUserImages } from "@/lib/actions/image.actions";
-import { getUserById } from "@/lib/actions/user.actions";
+import { getUserById, createUser } from "@/lib/actions/user.actions";
 
 const Profile = async ({ searchParams }: SearchParamProps) => {
   const page = Number(searchParams?.page) || 1;
   const { userId } = auth();
+  const user = await currentUser();
 
   if (!userId) redirect("/sign-in");
 
-  const user = await getUserById(userId);
-  const images = await getUserImages({ page, userId: user._id });
+  // Try to get user from database
+  let dbUser;
+  try {
+    dbUser = await getUserById(userId);
+  } catch (error) {
+    // If user doesn't exist in database, create them
+    if (user) {
+      const newUser = {
+        clerkId: userId,
+        email: user.emailAddresses[0]?.emailAddress || "",
+        username: user.username || "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        photo: user.imageUrl,
+      };
+
+      dbUser = await createUser(newUser);
+    } else {
+      // If we can't get user info from Clerk, redirect to sign-in
+      redirect("/sign-in");
+    }
+  }
+
+  if (!dbUser) {
+    redirect("/sign-in");
+  }
+
+  const images = await getUserImages({ page, userId: dbUser._id });
 
   return (
     <>
@@ -31,7 +58,7 @@ const Profile = async ({ searchParams }: SearchParamProps) => {
               height={50}
               className="size-9 md:size-12"
             />
-            <h2 className="h2-bold text-dark-600">{user.creditBalance}</h2>
+            <h2 className="h2-bold text-dark-600">{dbUser.creditBalance}</h2>
           </div>
         </div>
 

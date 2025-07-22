@@ -1,19 +1,45 @@
-import { SignedIn, auth } from "@clerk/nextjs";
+import { SignedIn, auth, currentUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import Header from "@/components/shared/Header";
 import { Button } from "@/components/ui/button";
 import { plans } from "@/constants";
-import { getUserById } from "@/lib/actions/user.actions";
+import { getUserById, createUser } from "@/lib/actions/user.actions";
 import Checkout from "@/components/shared/Checkout";
 
 const Credits = async () => {
   const { userId } = auth();
+  const user = await currentUser();
 
   if (!userId) redirect("/sign-in");
 
-  const user = await getUserById(userId);
+  // Try to get user from database
+  let dbUser;
+  try {
+    dbUser = await getUserById(userId);
+  } catch (error) {
+    // If user doesn't exist in database, create them
+    if (user) {
+      const newUser = {
+        clerkId: userId,
+        email: user.emailAddresses[0]?.emailAddress || "",
+        username: user.username || "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        photo: user.imageUrl,
+      };
+
+      dbUser = await createUser(newUser);
+    } else {
+      // If we can't get user info from Clerk, redirect to sign-in
+      redirect("/sign-in");
+    }
+  }
+
+  if (!dbUser) {
+    redirect("/sign-in");
+  }
 
   return (
     <>
@@ -65,7 +91,7 @@ const Credits = async () => {
                     plan={plan.name}
                     amount={plan.price}
                     credits={plan.credits}
-                    buyerId={user._id}
+                    buyerId={dbUser._id}
                   />
                 </SignedIn>
               )}
