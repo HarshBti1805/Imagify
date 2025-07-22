@@ -10,7 +10,7 @@ import { updateCredits } from "./user.actions";
 // Helper function to add timeout to database operations
 const withTimeout = <T>(
   promise: Promise<T>,
-  timeoutMs: number = 8000
+  timeoutMs: number = 15000
 ): Promise<T> => {
   return Promise.race([
     promise,
@@ -55,14 +55,14 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
 
 export async function createTransaction(transaction: CreateTransactionParams) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     // Create a new transaction with a buyerId
     const newTransaction = await withTimeout(
       Transaction.create({
         ...transaction,
         buyer: transaction.buyerId,
       }),
-      3000
+      8000
     );
     await updateCredits(transaction.buyerId, transaction.credits);
     return JSON.parse(JSON.stringify(newTransaction));

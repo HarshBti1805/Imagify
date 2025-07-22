@@ -9,7 +9,7 @@ import { handleError } from "../utils";
 // Helper function to add timeout to database operations
 const withTimeout = <T>(
   promise: Promise<T>,
-  timeoutMs: number = 8000
+  timeoutMs: number = 15000
 ): Promise<T> => {
   return Promise.race([
     promise,
@@ -25,8 +25,8 @@ const withTimeout = <T>(
 // CREATE
 export async function createUser(user: CreateUserParams): Promise<User> {
   try {
-    await withTimeout(connectToDatabase(), 5000);
-    const newUser = await withTimeout(User.create(user), 3000);
+    await withTimeout(connectToDatabase(), 10000);
+    const newUser = await withTimeout(User.create(user), 8000);
     return JSON.parse(JSON.stringify(newUser));
   } catch (error) {
     handleError(error);
@@ -37,8 +37,8 @@ export async function createUser(user: CreateUserParams): Promise<User> {
 // READ
 export async function getUserById(userId: string): Promise<User> {
   try {
-    await withTimeout(connectToDatabase(), 5000);
-    const user = await withTimeout(User.findOne({ clerkId: userId }), 3000);
+    await withTimeout(connectToDatabase(), 10000);
+    const user = await withTimeout(User.findOne({ clerkId: userId }), 8000);
     if (!user) throw new Error("User not found");
     return JSON.parse(JSON.stringify(user));
   } catch (error) {
@@ -53,10 +53,10 @@ export async function updateUser(
   user: UpdateUserParams
 ): Promise<User> {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     const updatedUser = await withTimeout(
       User.findOneAndUpdate({ clerkId }, user, { new: true }),
-      3000
+      8000
     );
     if (!updatedUser) throw new Error("User update failed");
     return JSON.parse(JSON.stringify(updatedUser));
@@ -69,16 +69,16 @@ export async function updateUser(
 // DELETE
 export async function deleteUser(clerkId: string): Promise<User | null> {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     // Find user to delete
-    const userToDelete = await withTimeout(User.findOne({ clerkId }), 3000);
+    const userToDelete = await withTimeout(User.findOne({ clerkId }), 8000);
     if (!userToDelete) {
       throw new Error("User not found");
     }
     // Delete user
     const deletedUser = await withTimeout(
       User.findByIdAndDelete(userToDelete._id),
-      3000
+      8000
     );
     revalidatePath("/");
     return deletedUser ? JSON.parse(JSON.stringify(deletedUser)) : null;
@@ -94,14 +94,14 @@ export async function updateCredits(
   creditFee: number
 ): Promise<User> {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     const updatedUserCredits = await withTimeout(
       User.findOneAndUpdate(
         { _id: userId },
         { $inc: { creditBalance: creditFee } },
         { new: true }
       ),
-      3000
+      8000
     );
     if (!updatedUserCredits) throw new Error("User credits update failed");
     return JSON.parse(JSON.stringify(updatedUserCredits));

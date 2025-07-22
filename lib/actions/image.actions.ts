@@ -12,7 +12,7 @@ import { v2 as cloudinary } from "cloudinary";
 // Helper function to add timeout to database operations
 const withTimeout = <T>(
   promise: Promise<T>,
-  timeoutMs: number = 8000
+  timeoutMs: number = 15000
 ): Promise<T> => {
   return Promise.race([
     promise,
@@ -35,8 +35,8 @@ const populateUser = (query: any) =>
 // ADD IMAGE
 export async function addImage({ image, userId, path }: AddImageParams) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
-    const author = await withTimeout(User.findById(userId), 3000);
+    await withTimeout(connectToDatabase(), 10000);
+    const author = await withTimeout(User.findById(userId), 8000);
     if (!author) {
       throw new Error("User not found");
     }
@@ -45,7 +45,7 @@ export async function addImage({ image, userId, path }: AddImageParams) {
         ...image,
         author: author._id,
       }),
-      3000
+      8000
     );
     revalidatePath(path);
     return JSON.parse(JSON.stringify(newImage));
@@ -57,14 +57,14 @@ export async function addImage({ image, userId, path }: AddImageParams) {
 // UPDATE IMAGE
 export async function updateImage({ image, userId, path }: UpdateImageParams) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
-    const imageToUpdate = await withTimeout(Image.findById(image._id), 3000);
+    await withTimeout(connectToDatabase(), 10000);
+    const imageToUpdate = await withTimeout(Image.findById(image._id), 8000);
     if (!imageToUpdate || imageToUpdate.author.toHexString() !== userId) {
       throw new Error("Unauthorized or image not found");
     }
     const updatedImage = await withTimeout(
       Image.findByIdAndUpdate(imageToUpdate._id, image, { new: true }),
-      3000
+      8000
     );
     revalidatePath(path);
     return JSON.parse(JSON.stringify(updatedImage));
@@ -76,12 +76,12 @@ export async function updateImage({ image, userId, path }: UpdateImageParams) {
 // DELETE IMAGE
 export async function deleteImage(imageId: string) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
-    const imageToDelete = await withTimeout(Image.findById(imageId), 3000);
+    await withTimeout(connectToDatabase(), 10000);
+    const imageToDelete = await withTimeout(Image.findById(imageId), 8000);
     if (!imageToDelete) throw new Error("Image not found");
     const deletedImage = await withTimeout(
       Image.findByIdAndDelete(imageId),
-      3000
+      8000
     );
     revalidatePath("/");
     return deletedImage ? JSON.parse(JSON.stringify(deletedImage)) : null;
@@ -93,10 +93,10 @@ export async function deleteImage(imageId: string) {
 // GET IMAGE
 export async function getImageById(imageId: string) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     const image = await withTimeout(
       populateUser(Image.findById(imageId)),
-      3000
+      8000
     );
     if (!image) throw new Error("Image not found");
     return JSON.parse(JSON.stringify(image));
@@ -116,7 +116,7 @@ export async function getAllImages({
   searchQuery?: string;
 }) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     cloudinary.config({
       cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
@@ -129,7 +129,7 @@ export async function getAllImages({
     }
     const { resources } = await withTimeout(
       cloudinary.search.expression(expression).execute(),
-      5000
+      10000
     );
     const resourceIds = resources.map((resource: any) => resource.public_id);
     let query = {};
@@ -146,13 +146,13 @@ export async function getAllImages({
         .sort({ updatedAt: -1 })
         .skip(skipAmount)
         .limit(limit),
-      5000
+      10000
     );
     const totalImages = await withTimeout(
       Image.find(query).countDocuments(),
-      3000
+      8000
     );
-    const savedImages = await withTimeout(Image.find().countDocuments(), 3000);
+    const savedImages = await withTimeout(Image.find().countDocuments(), 8000);
     return {
       data: JSON.parse(JSON.stringify(images)),
       totalPage: Math.ceil(totalImages / limit),
@@ -174,18 +174,18 @@ export async function getUserImages({
   userId: string;
 }) {
   try {
-    await withTimeout(connectToDatabase(), 5000);
+    await withTimeout(connectToDatabase(), 10000);
     const skipAmount = (Number(page) - 1) * limit;
     const images = await withTimeout(
       populateUser(Image.find({ author: userId }))
         .sort({ updatedAt: -1 })
         .skip(skipAmount)
         .limit(limit),
-      5000
+      10000
     );
     const totalImages = await withTimeout(
       Image.find({ author: userId }).countDocuments(),
-      3000
+      8000
     );
     return {
       data: JSON.parse(JSON.stringify(images)),
