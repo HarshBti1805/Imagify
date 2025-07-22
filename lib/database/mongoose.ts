@@ -26,9 +26,18 @@ export const connectToDatabase = async () => {
     mongoose.connect(MONGODB_URL, {
       dbName: "imaginify",
       bufferCommands: false,
+      maxPoolSize: 1, // Limit connection pool for serverless
+      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      socketTimeoutMS: 45000, // 45 second timeout
+      connectTimeoutMS: 10000, // 10 second timeout
+      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
     });
 
-  cached.conn = await cached.promise;
-
-  return cached.conn;
+  try {
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (error) {
+    cached.promise = null; // Reset promise on error
+    throw error;
+  }
 };
