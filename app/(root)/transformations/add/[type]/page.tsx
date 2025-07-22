@@ -10,9 +10,12 @@ const AddTransformationTypePage = async ({
 }: SearchParamProps) => {
   const { userId } = auth();
   const user = await currentUser();
-  const transformation = transformationTypes[type];
 
   if (!userId) redirect("/sign-in");
+
+  // Ensure 'type' is a valid key of transformationTypes
+  const transformation =
+    transformationTypes[type as keyof typeof transformationTypes];
 
   // Try to get user from database
   let dbUser;
